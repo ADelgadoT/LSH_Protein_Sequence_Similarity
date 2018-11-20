@@ -33,6 +33,6 @@ class UniprotDB(object):
         return proteins
 
     def extractProteinSeqFromSpecie25(self, organism):
-        self.c.execute("SELECT proteinID, sequence FROM proteins WHERE organism ='"+ organism +"' LIMIT 2500")
+        self.c.execute("SELECT proteinID, sequence FROM proteins WHERE organism ='"+ organism +"'")
         proteins = list(self.c.fetchall())
         return proteins
