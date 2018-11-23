@@ -17,7 +17,7 @@ class Analyzer(object):
 		while(mode!='Exit'):
 			#print(mode)
 			if (mode=='Delete Database'):
-				uniDB.close()
+				uniDB.deleteProteins()
 
 			if (mode=='Load Database'):
 				#DB creation:
@@ -25,7 +25,8 @@ class Analyzer(object):
 				#uniDB = UniprotDB("Uniprot_DB.sqlite")
 				uniDB.createTables()
 				#loadProteins("uniprot_thaliana.xml",uni_DB)
-				protManager.loadProteins("uniprot-filtered-organism_all.xml",uniDB)
+				protManager.loadProteins("Ecolx.xml",uniDB)
+				protManager.loadProteins("PseA7.xml",uniDB)
 
 			#uniDB = UniprotDB("Uniprot_DB.sqlite")
 			#uni_DB.close()
@@ -34,10 +35,20 @@ class Analyzer(object):
 			if (mode=='Calculate LSH'):
 				uniDB = UniprotDB("Uniprot_DB.sqlite")
 				#uni_DB.close()
-				proteins = uniDB.extractProteinSeqFromSpecie25("Arabidopsis thaliana (Mouse-ear cress)")
+				proteins = uniDB.extractProteins()
 				#minhash.calculateLSH([protein[1] for protein in proteins])
 				minhashes, lsh = minhash.calculateLSH(proteins)
 				print(minhashes.keys())
+
+			if (mode=='Recalculate LSH'):
+				minhash = LSH(0.42,128)
+				uniDB = UniprotDB("Uniprot_DB.sqlite")
+				#uni_DB.close()
+				proteins = uniDB.extractProteins()
+				#minhash.calculateLSH([protein[1] for protein in proteins])
+				minhashes, lsh = minhash.calculateLSH(proteins)
+				print(minhashes.keys())
+
 
 			if (mode=='Query'):
 				protein=input('Protein:')

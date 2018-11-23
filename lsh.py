@@ -12,6 +12,7 @@ class LSH:
 
 	def calculateLSH(self,data):
 		# Create MinHash objects
+		print(len(data))
 		for c, i in enumerate(data):
 			print("data" + str(i[0]))
 			minhash = MinHash(num_perm=128)
@@ -19,7 +20,7 @@ class LSH:
 				minhash.update("".join(d).encode('utf-8'))
 			self.lsh.insert(i[0], minhash)
 			self.minhashes[i[0]] = minhash
-		#print(self.minhashes.keys())
+		print(self.minhashes.keys())
 		#print(self.lsh)
 		#data = pickle.dumps(self.lsh)
 		#with open('filename.pickle', 'wb') as handle:
