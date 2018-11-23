@@ -37,6 +37,15 @@ class LSH:
 		print("Candidates for ",protein,": ",result)
 		return result
 
+	def checkJaccardResultsOfProtein(self,protein, result):
+		#print(self.minhashes)
+		jaccResultsDict = dict()
+		for prot in result:
+			jaccRes = self.minhashes[protein].jaccard(self.minhashes[prot])
+			jaccResultsDict[prot] = jaccRes
+		#print("Jaccard values ",protein,": ",str(jaccResultsDict.items))
+		return jaccResultsDict
+
 	def saveLSH(self):
 		with open('lsh.pickle', 'wb') as handle:
 			pickle.dump(self.lsh, handle, protocol=pickle.HIGHEST_PROTOCOL)

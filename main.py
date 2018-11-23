@@ -3,6 +3,7 @@ from ProteinsManager import ProteinsManager
 from UniprotDB import UniprotDB
 from uniProtein import uniProtein
 from lsh import LSH
+from collections import OrderedDict
 #from Bio import SeqIO
 
 class Analyzer(object):
@@ -12,7 +13,7 @@ class Analyzer(object):
 		mode=input('Choose option:')
 		
 		uniDB = UniprotDB("Uniprot_DB.sqlite")
-		minhash = LSH(0.42,128)
+		minhash = LSH(0.32,128)
 		
 		while(mode!='Exit'):
 			#print(mode)
@@ -41,7 +42,7 @@ class Analyzer(object):
 				print(minhashes.keys())
 
 			if (mode=='Recalculate LSH'):
-				minhash = LSH(0.42,128)
+				minhash = LSH(0.32,128)
 				uniDB = UniprotDB("Uniprot_DB.sqlite")
 				#uni_DB.close()
 				proteins = uniDB.extractProteins()
@@ -49,10 +50,13 @@ class Analyzer(object):
 				minhashes, lsh = minhash.calculateLSH(proteins)
 				print(minhashes.keys())
 
-
 			if (mode=='Query'):
 				protein=input('Protein:')
-				minhash.queryProtein(protein)
+				result = minhash.queryProtein(protein)
+				jaccResultsDict = minhash.checkJaccardResultsOfProtein(protein, result)
+				sorted_jaccResultsDict = OrderedDict(sorted(jaccResultsDict.items(), key=lambda x: -x[1]))
+				for jaccRes in sorted_jaccResultsDict.items():
+					print(jaccRes[0]," - Jaccard: ",jaccRes[1])
 			if (mode=='Save LSH'):
 				minhash.saveLSH()
 			if (mode=='Load LSH'):
