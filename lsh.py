@@ -51,6 +51,6 @@ class LSH:
 			self.minhashes = pickle.load(handle)
 		#print(self.lsh)
 		#print(self.minhashes)
-		print("Load")
+		print("Loaded")
 
 

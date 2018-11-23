@@ -9,13 +9,13 @@ class Analyzer(object):
 
 	def run(self):
 
-		mode=input('Choose menu options:')
+		mode=input('Choose option:')
 		
 		uniDB = UniprotDB("Uniprot_DB.sqlite")
-		minhash = LSH(0.5,128)
+		minhash = LSH(0.42,128)
 		
 		while(mode!='Exit'):
-			print(mode)
+			#print(mode)
 			if (mode=='Delete Database'):
 				uniDB.close()
 
@@ -47,7 +47,7 @@ class Analyzer(object):
 			if (mode=='Load LSH'):
 				minhash.loadLSH()
 
-			mode=input('Choose menu options:')
+			mode=input('Choose option:')
        
 
 if __name__ == '__main__':
