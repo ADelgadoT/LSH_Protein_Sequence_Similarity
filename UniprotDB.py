@@ -7,8 +7,12 @@ class UniprotDB(object):
         self.c = self.db.cursor()
 
     def close(self):
-        self.c.execute("DROP TABLE proteins")
         self.db.close()
+
+    def deleteProteins(self):
+        self.c.execute("DROP TABLE proteins")
+        self.db.commit()
+	
         
     def createTables(self):
         self.c.execute("CREATE TABLE IF NOT EXISTS proteins(proteinID TEXT PRIMARY KEY, name TEXT, fullName TEXT, description TEXT, sequence TEXT, organism TEXT)")
@@ -34,5 +38,10 @@ class UniprotDB(object):
 
     def extractProteinSeqFromSpecie25(self, organism):
         self.c.execute("SELECT proteinID, sequence FROM proteins WHERE organism ='"+ organism +"'")
+        proteins = list(self.c.fetchall())
+        return proteins
+
+    def extractProteins(self):
+        self.c.execute("SELECT proteinID, sequence FROM proteins")
         proteins = list(self.c.fetchall())
         return proteins
