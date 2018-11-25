@@ -21,21 +21,17 @@ class LSH:
 			self.lsh.insert(i[0], minhash)
 			self.minhashes[i[0]] = minhash
 		print(self.minhashes.keys())
-		#print(self.lsh)
-		#data = pickle.dumps(self.lsh)
-		#with open('filename.pickle', 'wb') as handle:
-		#	pickle.dump(self.lsh, handle, protocol=pickle.HIGHEST_PROTOCOL)
-		#for i in self.minhashes.keys():
-		#  result = self.lsh.query(self.minhashes[i])
-		#  print("Candidates with Jaccard similarity > 0.5 for input", i, ":", result)
-		#print(type(self.minhashes))
 		return self.minhashes, self.lsh
 
 	def queryProtein(self,protein):
 		#print(self.minhashes)
-		result = self.lsh.query(self.minhashes[protein])
-		print("Candidates for ",protein,": ",result)
-		return result
+		if (self.minhashes.get(protein) == None):
+			print("Candidates for ",protein," not found")
+			return None
+		else:
+			result = self.lsh.query(self.minhashes[protein])
+			print("Candidates for ",protein,": ",result)
+			return result
 
 	def estimateJaccard(self, query, match):
 		return self.minhashes[query].jaccard(self.minhashes[match])
@@ -50,20 +46,25 @@ class LSH:
 		return jaccResultsDict
 
 	def saveLSH(self):
-		with open('lsh.pickle', 'wb') as handle:
-			pickle.dump(self.lsh, handle, protocol=pickle.HIGHEST_PROTOCOL)
-		with open('minhashes.pickle', 'wb') as handle:
-			pickle.dump(self.minhashes, handle, protocol=pickle.HIGHEST_PROTOCOL)
-		#print(self.minhashes)
-		print("Saved")
+		try:
+			with open('lsh.pickle', 'wb') as handle:
+				pickle.dump(self.lsh, handle, protocol=pickle.HIGHEST_PROTOCOL)
+			with open('minhashes.pickle', 'wb') as handle:
+				pickle.dump(self.minhashes, handle, protocol=pickle.HIGHEST_PROTOCOL)
+			print("Saved")
+		except:
+			print("Error occurred when trying to save LSH")
+			return
 
 	def loadLSH(self):
-		with open('lsh.pickle', 'rb') as handle:
-			self.lsh = pickle.load(handle)
-		with open('minhashes.pickle', 'rb') as handle:
-			self.minhashes = pickle.load(handle)
-		#print(self.lsh)
-		#print(self.minhashes)
-		print("Loaded")
+		try:
+			with open('lsh.pickle', 'rb') as handle:
+				self.lsh = pickle.load(handle)
+			with open('minhashes.pickle', 'rb') as handle:
+				self.minhashes = pickle.load(handle)
+			print("Loaded")
+		except:
+			print("Error occurred when trying to load LSH")
+			return
 
 

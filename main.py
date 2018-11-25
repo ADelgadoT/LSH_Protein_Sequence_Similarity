@@ -56,10 +56,11 @@ class Analyzer(object):
 			if (mode=='Query'):
 				protein = input('Protein accession: ')
 				result = minhash.queryProtein(protein)
-				jaccResultsDict = minhash.checkJaccardResultsOfProtein(protein, result)
-				sorted_jaccResultsDict = OrderedDict(sorted(jaccResultsDict.items(), key=lambda x: -x[1]))
-				for jaccRes in sorted_jaccResultsDict.items():
-					print(jaccRes[0]," - Jaccard: ",jaccRes[1])
+				if result is not None:
+					jaccResultsDict = minhash.checkJaccardResultsOfProtein(protein, result)
+					sorted_jaccResultsDict = OrderedDict(sorted(jaccResultsDict.items(), key=lambda x: -x[1]))
+					for jaccRes in sorted_jaccResultsDict.items():
+						print(jaccRes[0]," - Jaccard: ",jaccRes[1])
 					
 			if (mode=='Query All'):
 				resultsDB = ResultsDB("Results_DB.sqlite")

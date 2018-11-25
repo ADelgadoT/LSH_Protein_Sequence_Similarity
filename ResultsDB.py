@@ -23,11 +23,8 @@ class ResultsDB(object):
 		self.db.commit()
 		
 	def addBLASTresult(self, queryID, matchID, identity, alignmentlength):
-		try:
-			self.c.execute("INSERT INTO blastresults(queryID, matchID, identity, alignmentlength) VALUES ('"+ queryID + "','" + matchID +"','"+ str(identity) +"','" + str(alignmentlength) +"')")
-			self.db.commit()
-		except sqlite3.IntegrityError as err:
-			print('Multiple matches found for: %s - %s. Only the first match was kept.' % (queryID, matchID))
+		self.c.execute("INSERT INTO blastresults(queryID, matchID, identity, alignmentlength) VALUES ('"+ queryID + "','" + matchID +"','"+ str(identity) +"','" + str(alignmentlength) +"')")
+		self.db.commit()
 		
 	def addLSHresult(self, queryID, matchID, jaccard):
 		self.c.execute("INSERT INTO lshresults(queryID, matchID, jaccard) VALUES ('"+ queryID + "','" + matchID +"','"+ str(jaccard) +"')")
