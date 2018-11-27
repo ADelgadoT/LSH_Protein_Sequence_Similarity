@@ -10,7 +10,7 @@ class UniprotDB(object):
         self.db.close()
 
     def deleteProteins(self):
-        self.c.execute("DROP TABLE proteins")
+        self.c.execute("DROP TABLE IF EXISTS proteins")
         self.db.commit()
 	
         
