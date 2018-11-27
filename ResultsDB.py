@@ -17,9 +17,16 @@ class ResultsDB(object):
 		self.c.execute("DROP TABLE lshresults")
 		self.db.commit()
 		
-	def createTables(self):
+	def deleteTable(self, tablename):
+		self.c.execute("DROP TABLE " + tablename)
+		self.db.commit()
+		
+	def createBLASTtable(self):
 		self.c.execute("CREATE TABLE IF NOT EXISTS blastresults(queryID TEXT, matchID TEXT, identity REAL, alignmentlength INTEGER, PRIMARY KEY (queryID, matchID))")
-		self.c.execute("CREATE TABLE IF NOT EXISTS lshresults(queryID TEXT, matchID TEXT, jaccard REAL, PRIMARY KEY (queryID, matchID))")
+		self.db.commit()
+		
+	def createLSHtable(self, tablename):
+		self.c.execute("CREATE TABLE IF NOT EXISTS "+ tablename +"(queryID TEXT, matchID TEXT, jaccard REAL, PRIMARY KEY (queryID, matchID))")
 		self.db.commit()
 		
 	def addBLASTresult(self, queryID, matchID, identity, alignmentlength):
@@ -29,28 +36,67 @@ class ResultsDB(object):
 		except sqlite3.IntegrityError as err:
 			print('Multiple matches found for: %s - %s. Only the first match was kept.' % (queryID, matchID))
 		
-	def addLSHresult(self, queryID, matchID, jaccard):
-		self.c.execute("INSERT INTO lshresults(queryID, matchID, jaccard) VALUES ('"+ queryID + "','" + matchID +"','"+ str(jaccard) +"')")
+	def addLSHresult(self, queryID, matchID, jaccard, tablename="lshresults"):
+		self.c.execute("INSERT INTO "+ tablename +"(queryID, matchID, jaccard) VALUES ('"+ queryID + "','" + matchID +"','"+ str(jaccard) +"')")
 		self.db.commit()
 		
-	def extractBLASTresults(self):
-		self.c.execute("SELECT queryID, matchID, identity, alignmentlength FROM blastresults")
+	def extractBLASTresults(self, identity=0.0, alignmentlength=0):
+		self.c.execute("SELECT queryID, matchID, identity, alignmentlength FROM blastresults WHERE (identity >= "+ identity +"AND alignmentlength >="+ alignmentlength +")")
 		results = list(self.c.fetchall())
 		return results
 		
-	def extractLSHresults(self):
-		self.c.execute("SELECT * FROM lshresults")
+	def extractBLASTresults(self, identity=0.0, alignmentlength=0):
+		self.c.execute("SELECT queryID, matchID, identity, alignmentlength FROM blastresults WHERE (identity >= "+ identity +"AND alignmentlength >="+ alignmentlength +")")
 		results = list(self.c.fetchall())
 		return results
 		
-	def extractIntersect(self):
-		self.c.execute("""SELECT lshresults.queryID, lshresults.matchID, blastresults.identity, 
-						blastresults.alignmentlength, lshresults.jaccard FROM lshresults 
-						INNER JOIN blastresults ON (lshresults.queryID = blastresults.queryID
-						AND lshresults.matchID = blastresults.matchID)
-						""")
+	def extractLSHresults(self, tablename="lshresults", jaccard=0.0):
+		self.c.execute("SELECT * FROM " + tablename + "WHERE jaccard >=" + jaccard)
 		results = list(self.c.fetchall())
 		return results
+		
+	def extractLSHcount(self, tablename="lshresults", jaccard=0.0):
+		self.c.execute("SELECT COUNT(*) FROM " + tablename + "WHERE jaccard >=" + jaccard)
+		results = list(self.c.fetchall())
+		return results
+		
+	def extractCount(self, tablename="lshresults"):
+		self.c.execute("SELECT COUNT(*) FROM " + tablename)
+		results = list(self.c.fetchall())
+		return results
+		
+	def extractIntersect(self, lshtablename = "lshresults", identity = 0.0, alignmentlength = 0, jaccard = 0):
+		self.c.execute("""SELECT lshreslts.queryID, lshreslts.matchID, blastresults.identity, 
+						blastresults.alignmentlength, lshreslts.jaccard FROM blastresults INNER JOIN""" \
+						+ lshtablename+ \
+						""" lshreslts ON (lshreslts.queryID = blastresults.queryID
+						AND lshreslts.matchID = blastresults.matchID)
+						WHERE blastresults.identity >= """ \
+						+ identity + \
+						"blastresults.alignmentlength >=" \
+						+ alignmentlength + \
+						"lshreslts.jaccard >=" \
+						+ jaccard
+						)
+		results = list(self.c.fetchall())
+		return results
+		
+		
+	def extractIntersect(self, lshtablename = "lshresults", identity = 0.0, alignmentlength = 0, jaccard = 0):
+		self.c.execute("""SELECT COUNT(*) FROM blastresults INNER JOIN""" \
+						+ lshtablename+ \
+						""" lshreslts ON (lshreslts.queryID = blastresults.queryID
+						AND lshreslts.matchID = blastresults.matchID)
+						WHERE blastresults.identity >= """ \
+						+ identity + \
+						"blastresults.alignmentlength >=" \
+						+ alignmentlength+ \
+						"lshreslts.jaccard >=" \
+						+ jaccard
+						)
+		results = list(self.c.fetchall())
+		return results
+
 """	
 	def extractBLASTresultsFromFile(self, organism, filename):
 		output = open('Protein_Specie.csv', 'w+')

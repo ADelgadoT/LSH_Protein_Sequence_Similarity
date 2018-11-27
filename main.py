@@ -16,7 +16,7 @@ class Analyzer(object):
 		mode=input('Choose option:')
 		
 		uniDB = UniprotDB("Uniprot_DB.sqlite")
-		minhash = LSH(0.32,128)
+		minhash = LSH(0.2,128)
 		
 		while(mode!='Exit'):
 			#print(mode)
@@ -41,16 +41,17 @@ class Analyzer(object):
 				#uni_DB.close()
 				proteins = uniDB.extractProteins()
 				#minhash.calculateLSH([protein[1] for protein in proteins])
-				minhashes, lsh = minhash.calculateLSH(proteins)
+				minhashes, lsh = minhash.calculateLSH(proteins, 3)
 				print(minhashes.keys())
 
 			if (mode=='Recalculate LSH'):
-				minhash = LSH(0.32,128)
+				jaccardThreshold = float(input("Specify a Jaccard similarity threshold: "))
+				minhash = LSH(jaccardThreshold,128)
 				uniDB = UniprotDB("Uniprot_DB.sqlite")
 				#uni_DB.close()
 				proteins = uniDB.extractProteins()
 				#minhash.calculateLSH([protein[1] for protein in proteins])
-				minhashes, lsh = minhash.calculateLSH(proteins)
+				minhashes, lsh = minhash.calculateLSH(proteins, 3)
 				print(minhashes.keys())
 
 			if (mode=='Query'):
@@ -61,27 +62,27 @@ class Analyzer(object):
 				for jaccRes in sorted_jaccResultsDict.items():
 					print(jaccRes[0]," - Jaccard: ",jaccRes[1])
 					
-			if (mode=='Query All'):
+			if (mode=='LSH Query All'):
 				resultsDB = ResultsDB("Results_DB.sqlite")
-				resultsDB.createTables()
-				resultsDB.deleteLSHresults()
-				resultsDB.createTables()
+				resultsDB.createLSHtable("lshresults")
+				resultsDB.deleteTable("lshresults")
+				resultsDB.createLSHtable("lshresults")
 				for query in minhash.minhashes.keys():
 					matches = minhash.queryProtein(query)
 					for match in matches:
 						# Filter self-matches
 						if query != match:
 							jaccard = minhash.estimateJaccard(query, match)
-							resultsDB.addLSHresult(query, match, jaccard)
-				print(resultsDB.extractLSHresults())
+							resultsDB.addLSHresult(query, match, jaccard, "lshresults")
+				print(resultsDB.extractLSHresults("lshresults"))
 					
-			if (mode=='Read BLAST results'):
+			if (mode=='Read BLAST Results'):
 				filename = input('Filename: ')
 				handle = open(filename, 'r')
 				resultsDB = ResultsDB("Results_DB.sqlite")
-				resultsDB.createTables()
+				resultsDB.createBLASTtable()
 				resultsDB.deleteBLASTresults()
-				resultsDB.createTables()
+				resultsDB.createBLASTtable()
 				for line in handle:
 					line = line[:-1].split('\t')
 					# Extract accessions from 'sp|A0A0R6L508|MCR1_ECOLX'-like string

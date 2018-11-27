@@ -10,13 +10,13 @@ class LSH:
 		self.lsh = MinHashLSH(threshold=self.threshold, num_perm=self.num_perm)
 		self.minhashes = dict()
 
-	def calculateLSH(self,data):
+	def calculateLSH(self,data,n):
 		# Create MinHash objects
-		print(len(data))
+		print("Initializing the LSH for %i samples" % len(data))
 		for c, i in enumerate(data):
 			print("data" + str(i[0]))
-			minhash = MinHash(num_perm=128)
-			for d in ngrams(i[1], 3):
+			minhash = MinHash(num_perm=self.num_perm)
+			for d in ngrams(i[1], n):
 				minhash.update("".join(d).encode('utf-8'))
 			self.lsh.insert(i[0], minhash)
 			self.minhashes[i[0]] = minhash
