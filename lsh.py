@@ -24,8 +24,9 @@ class LSH:
 		return self.minhashes, self.lsh
 
 	def queryProtein(self,protein):
-		#print(self.minhashes)
-		if (self.minhashes.get(protein) == None):
+		print(self.minhashes)
+		print(self.minhashes.keys())
+		if (self.minhashes.get(protein) is None):
 			print("Candidates for ",protein," not found")
 			return None
 		else:
@@ -45,22 +46,22 @@ class LSH:
 		#print("Jaccard values ",query,": ",str(jaccResultsDict.items))
 		return jaccResultsDict
 
-	def saveLSH(self):
+	def saveLSH(self, number = 0):
 		try:
-			with open('lsh.pickle', 'wb') as handle:
+			with open('lsh%i.pickle' % number, 'wb') as handle:
 				pickle.dump(self.lsh, handle, protocol=pickle.HIGHEST_PROTOCOL)
-			with open('minhashes.pickle', 'wb') as handle:
+			with open('minhashes%i.pickle' % number, 'wb') as handle:
 				pickle.dump(self.minhashes, handle, protocol=pickle.HIGHEST_PROTOCOL)
 			print("Saved")
 		except:
 			print("Error occurred when trying to save LSH")
 			return
 
-	def loadLSH(self):
+	def loadLSH(self, number = 0):
 		try:
-			with open('lsh.pickle', 'rb') as handle:
+			with open('lsh%i.pickle' % number, 'rb') as handle:
 				self.lsh = pickle.load(handle)
-			with open('minhashes.pickle', 'rb') as handle:
+			with open('minhashes%i.pickle' % number, 'rb') as handle:
 				self.minhashes = pickle.load(handle)
 			print("Loaded")
 		except:

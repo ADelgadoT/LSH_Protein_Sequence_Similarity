@@ -23,9 +23,19 @@ protManager.loadProteins("PseA7.xml",uniDB)
 
 # Create the minhashes
 proteins = uniDB.extractProteins()
+"""
 minhashes3, lsh3 = minhash3.calculateLSH(proteins, 3)
 minhashes4, lsh4 = minhash4.calculateLSH(proteins, 4)
 minhashes5, lsh5 = minhash5.calculateLSH(proteins, 5)
+
+minhash3.saveLSH(3)
+minhash4.saveLSH(4)
+minhash5.saveLSH(5)
+"""
+
+minhash3.loadLSH(3)
+minhash4.loadLSH(4)
+minhash5.loadLSH(5)
 
 resultsDB = ResultsDB("Results_DB.sqlite")
 
@@ -52,12 +62,18 @@ resultsDB.createLSHtable("lshresults3")
 resultsDB.deleteTable("lshresults3")
 resultsDB.createLSHtable("lshresults3")
 for query in minhash3.minhashes.keys():
+	print(query)
 	matches = minhash3.queryProtein(query)
 	for match in matches:
 		# Filter self-matches
 		if query != match:
 			jaccard = minhash3.estimateJaccard(query, match)
 			resultsDB.addLSHresult(query, match, jaccard, "lshresults3")
+			
+print("BLAST results with 80% identity and length > 100, LSH results with Jaccard > 0.5")
+print("BLAST: ", resultsDB.extractCount('blastresults', 80.0, 100))
+print("LSH3: ", resultsDB.extractLSHcount('lshresults3', 0.5))	
+print("Intersect: ", resultsDB.extractIntersectCount('lshresults3', 80.0, 100, 0.5))		
 			
 # Create the LSH tables in the results database
 resultsDB.createLSHtable("lshresults4")
@@ -71,6 +87,9 @@ for query in minhash4.minhashes.keys():
 			jaccard = minhash4.estimateJaccard(query, match)
 			resultsDB.addLSHresult(query, match, jaccard, "lshresults4")
 
+print("LSH4: ", resultsDB.extractLSHcount('lshresults4'), 0.5)
+print("Intersect: ", resultsDB.extractIntersectCount('lshresults4', 80.0, 100, 0.5))
+			
 # Create the LSH tables in the results database
 resultsDB.createLSHtable("lshresults5")
 resultsDB.deleteTable("lshresults5")
