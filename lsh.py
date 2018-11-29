@@ -24,14 +24,12 @@ class LSH:
 		return self.minhashes, self.lsh
 
 	def queryProtein(self,protein):
-		print(self.minhashes)
-		print(self.minhashes.keys())
 		if (self.minhashes.get(protein) is None):
 			print("Candidates for ",protein," not found")
 			return None
 		else:
 			result = self.lsh.query(self.minhashes[protein])
-			print("Candidates for ",protein,": ",result)
+			#print("Candidates for ",protein,": ",result)
 			return result
 
 	def estimateJaccard(self, query, match):

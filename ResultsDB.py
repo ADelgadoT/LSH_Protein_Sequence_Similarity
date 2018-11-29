@@ -41,62 +41,110 @@ class ResultsDB(object):
 		self.db.commit()
 		
 	def extractBLASTresults(self, identity=0.0, alignmentlength=0):
-		self.c.execute("SELECT queryID, matchID, identity, alignmentlength FROM blastresults WHERE (identity >= "+ identity +"AND alignmentlength >="+ alignmentlength +")")
+		self.c.execute("SELECT queryID, matchID, identity, alignmentlength FROM blastresults WHERE (identity >= "+ str(identity) +" AND alignmentlength >= "+ str(alignmentlength) +")")
 		results = list(self.c.fetchall())
 		return results
 		
-	def extractBLASTresults(self, identity=0.0, alignmentlength=0):
-		self.c.execute("SELECT queryID, matchID, identity, alignmentlength FROM blastresults WHERE (identity >= "+ identity +"AND alignmentlength >="+ alignmentlength +")")
-		results = list(self.c.fetchall())
+	def extractBLASTalignmentlengths(self, identity=0.0, alignmentlength=0):
+		self.c.execute("SELECT alignmentlength FROM blastresults WHERE (identity >= "+ str(identity) +" AND alignmentlength >= "+ str(alignmentlength) +")")
+		results = [l[0] for l in self.c.fetchall()]
 		return results
+		
+	def extractBLASTidentities(self, identity=0.0, alignmentlength=0):
+		self.c.execute("SELECT identity FROM blastresults WHERE (identity >= "+ str(identity) +" AND alignmentlength >= "+ str(alignmentlength) +")")
+		results = [id[0] for id in self.c.fetchall()]
+		return results
+		
+	def extractBLASTcount(self, identity=0.0, alignmentlength=0):
+		self.c.execute("SELECT COUNT(*) FROM blastresults WHERE (identity >= "+ str(identity) +" AND alignmentlength >= "+ str(alignmentlength) +")")
+		results = self.c.fetchone()[0]
+		return results
+		
+	def extractBLASTcountPerProtein(self, queryID, identity=0.0, alignmentlength=0):
+		self.c.execute("SELECT COUNT(*) FROM blastresults WHERE (identity >= "+ str(identity) +" AND alignmentlength >= "+ str(alignmentlength) + " AND queryID = '" +queryID+"')")
+		results = self.c.fetchone()[0]
+		return results
+		
 		
 	def extractLSHresults(self, tablename="lshresults", jaccard=0.0):
-		self.c.execute("SELECT * FROM " + tablename + "WHERE jaccard >=" + jaccard)
+		self.c.execute("SELECT * FROM " + tablename + " WHERE jaccard >= " + str(jaccard))
 		results = list(self.c.fetchall())
 		return results
 		
 	def extractLSHcount(self, tablename="lshresults", jaccard=0.0):
-		self.c.execute("SELECT COUNT(*) FROM " + tablename + "WHERE jaccard >=" + jaccard)
-		results = list(self.c.fetchall())
+		self.c.execute("SELECT COUNT(*) FROM " + tablename + " WHERE jaccard >= " + str(jaccard))
+		results = self.c.fetchone()[0]
+		return results
+		
+	def extractLSHcountPerProtein(self, queryID, tablename="lshresults", jaccard=0.0):
+		self.c.execute("SELECT COUNT(*) FROM " + tablename + " WHERE jaccard >= " + str(jaccard) + " AND queryID = '" + queryID +"'")
+		results = self.c.fetchone()[0]
 		return results
 		
 	def extractCount(self, tablename="lshresults"):
 		self.c.execute("SELECT COUNT(*) FROM " + tablename)
-		results = list(self.c.fetchall())
+		results = self.c.fetchone()[0]
 		return results
 		
+
+	
 	def extractIntersect(self, lshtablename = "lshresults", identity = 0.0, alignmentlength = 0, jaccard = 0):
-		self.c.execute("""SELECT lshreslts.queryID, lshreslts.matchID, blastresults.identity, 
-						blastresults.alignmentlength, lshreslts.jaccard FROM blastresults INNER JOIN""" \
-						+ lshtablename+ \
-						""" lshreslts ON (lshreslts.queryID = blastresults.queryID
-						AND lshreslts.matchID = blastresults.matchID)
-						WHERE blastresults.identity >= """ \
-						+ identity + \
-						"blastresults.alignmentlength >=" \
-						+ alignmentlength + \
-						"lshreslts.jaccard >=" \
-						+ jaccard
-						)
-		results = list(self.c.fetchall())
+		self.c.execute("SELECT lshreslts.queryID, lshreslts.matchID, blastresults.identity, \
+						blastresults.alignmentlength, lshreslts.jaccard \
+						FROM blastresults INNER JOIN "+lshtablename+\
+						" lshreslts ON (lshreslts.queryID = blastresults.queryID AND lshreslts.matchID = blastresults.matchID)" +\
+						" WHERE (blastresults.identity >= "+ str(identity) + \
+						" AND blastresults.alignmentlength >= " + str(alignmentlength)+ \
+						" AND lshreslts.jaccard >= " + str(jaccard) +")")
+					
+		results = self.c.fetchone()[0]
 		return results
-		
-		
-	def extractIntersect(self, lshtablename = "lshresults", identity = 0.0, alignmentlength = 0, jaccard = 0):
-		self.c.execute("""SELECT COUNT(*) FROM blastresults INNER JOIN""" \
-						+ lshtablename+ \
-						""" lshreslts ON (lshreslts.queryID = blastresults.queryID
-						AND lshreslts.matchID = blastresults.matchID)
-						WHERE blastresults.identity >= """ \
-						+ identity + \
-						"blastresults.alignmentlength >=" \
-						+ alignmentlength+ \
-						"lshreslts.jaccard >=" \
-						+ jaccard
-						)
-		results = list(self.c.fetchall())
+	
+	def extractIntersectCount(self, lshtablename = "lshresults", identity = 0.0, alignmentlength = 0, jaccard = 0):
+		self.c.execute("SELECT COUNT(*) FROM blastresults INNER JOIN "+lshtablename+\
+						" lshreslts ON (lshreslts.queryID = blastresults.queryID AND lshreslts.matchID = blastresults.matchID)" +\
+						" WHERE (blastresults.identity >= "+ str(identity) + \
+						" AND blastresults.alignmentlength >= " + str(alignmentlength)+ \
+						" AND lshreslts.jaccard >= " + str(jaccard) +")")
+					
+		results = self.c.fetchone()[0]
 		return results
 
+	def extractIntersectCountPerProtein(self, queryID, lshtablename = "lshresults", identity = 0.0, alignmentlength = 0, jaccard = 0):
+		self.c.execute("SELECT COUNT(*) FROM blastresults INNER JOIN "+lshtablename+\
+						" lshreslts ON (lshreslts.queryID = blastresults.queryID AND lshreslts.matchID = blastresults.matchID)" +\
+						" WHERE (blastresults.identity >= "+ str(identity) + \
+						" AND blastresults.alignmentlength >= " + str(alignmentlength)+ \
+						" AND lshreslts.jaccard >= " + str(jaccard) +\
+						" AND blastresults.queryID = '" + queryID +\
+						"')")
+					
+		results = self.c.fetchone()[0]
+		return results		
+	
+		
+	def extractIntersectIdentity(self, lshtablename = "lshresults", identity = 0.0, alignmentlength = 0, jaccard = 0):
+		self.c.execute("SELECT blastresults.identity FROM blastresults INNER JOIN "+lshtablename+\
+						" lshreslts ON (lshreslts.queryID = blastresults.queryID AND lshreslts.matchID = blastresults.matchID)" +\
+						" WHERE (blastresults.identity >= "+ str(identity) + \
+						" AND blastresults.alignmentlength >= " + str(alignmentlength)+ \
+						" AND lshreslts.jaccard >= " + str(jaccard) +")")
+					
+		results = [id[0] for id in self.c.fetchall()]
+		return results
+
+
+	def extractIntersectAlignmentLength(self, lshtablename = "lshresults", identity = 0.0, alignmentlength = 0, jaccard = 0):
+		self.c.execute("SELECT blastresults.alignmentlength FROM blastresults INNER JOIN "+lshtablename+\
+						" lshreslts ON (lshreslts.queryID = blastresults.queryID AND lshreslts.matchID = blastresults.matchID)" +\
+						" WHERE (blastresults.identity >= "+ str(identity) + \
+						" AND blastresults.alignmentlength >= " + str(alignmentlength)+ \
+						" AND lshreslts.jaccard >= " + str(jaccard) +")")
+					
+		results = [l[0] for l in self.c.fetchall()]
+		return results
+
+		
 """	
 	def extractBLASTresultsFromFile(self, organism, filename):
 		output = open('Protein_Specie.csv', 'w+')
