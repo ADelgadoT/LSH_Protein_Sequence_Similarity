@@ -8,6 +8,7 @@ from collections import OrderedDict
 import matplotlib.pyplot as plt
 import pandas as pd
 #from Bio import SeqIO
+import time
 
 class Analyzer(object):
 
@@ -56,12 +57,31 @@ class Analyzer(object):
 
 			if (mode=='Query'):
 				protein = input('Protein accession: ')
+				start_time = time.time()
 				result = minhash.queryProtein(protein)
 				if result is not None:
 					jaccResultsDict = minhash.checkJaccardResultsOfProtein(protein, result)
 					sorted_jaccResultsDict = OrderedDict(sorted(jaccResultsDict.items(), key=lambda x: -x[1]))
 					for jaccRes in sorted_jaccResultsDict.items():
 						print(jaccRes[0]," - Jaccard: ",jaccRes[1])
+				print("Runtime of query search: %s seconds " % (time.time() - start_time))
+
+			if (mode=='Calculate All'):
+				start_time = time.time()
+				uniDB = UniprotDB("Uniprot_DB.sqlite")
+				#uni_DB.close()
+				proteins = uniDB.extractProteins()
+				#minhash.calculateLSH([protein[1] for protein in proteins])
+				minhashes, lsh = minhash.calculateLSH(proteins, 3)
+				for protein in proteins:
+					print("Protein ", protein[0])
+					result = minhash.queryProtein(protein[0])
+					if result is not None:
+						jaccResultsDict = minhash.checkJaccardResultsOfProtein(protein[0], result)
+						sorted_jaccResultsDict = OrderedDict(sorted(jaccResultsDict.items(), key=lambda x: -x[1]))
+						for jaccRes in sorted_jaccResultsDict.items():
+							print(jaccRes[0]," - Jaccard: ",jaccRes[1])
+				print("Runtime of query all: %s seconds " % (time.time() - start_time))
 					
 			if (mode=='LSH Query All'):
 				resultsDB = ResultsDB("Results_DB.sqlite")

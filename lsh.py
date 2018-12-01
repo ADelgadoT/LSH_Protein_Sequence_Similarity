@@ -32,6 +32,13 @@ class LSH:
 			#print("Candidates for ",protein,": ",result)
 			return result
 
+	def queryAll(self):
+		resultsDict = dict()
+		for protein in self.minhashes.keys():
+			result = self.lsh.query(self.minhashes[protein])
+			resultsDict[protein] = result
+		return resultsDict
+
 	def estimateJaccard(self, query, match):
 		return self.minhashes[query].jaccard(self.minhashes[match])
 		
