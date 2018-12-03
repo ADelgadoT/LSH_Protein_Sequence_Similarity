@@ -10,7 +10,7 @@ import pandas as pd
 import sqlite3
 
 
-uniDB = UniprotDB("Uniprot_DB.sqlite")
+uniDB = UniprotDB("Uniprot_DB_ec_pa_human.sqlite")
 #Construct the protein database
 """
 uniDB.deleteProteins()
@@ -19,30 +19,31 @@ uniDB.createTables()
 protManager.loadProteins("Ecolx.xml",uniDB)
 protManager.loadProteins("PseA7.xml",uniDB)
 """
+protManager = ProteinsManager()
+protManager.loadProteins("Human.xml",uniDB)
 
-
-minhash3 = LSH(0.3,128)
-minhash4 = LSH(0.3,128)
-minhash5 = LSH(0.3,128)
+minhash3 = LSH(0.3,96)
+minhash4 = LSH(0.5,96)
+minhash5 = LSH(0.5,128)
 
 
 # Create the minhashes
 proteins = uniDB.extractProteins()
-"""
+
 minhashes3, lsh3 = minhash3.calculateLSH(proteins, 3)
-minhashes4, lsh4 = minhash4.calculateLSH(proteins, 4)
-minhashes5, lsh5 = minhash5.calculateLSH(proteins, 5)
+minhashes4, lsh4 = minhash4.calculateLSH(proteins, 3)
+minhashes5, lsh5 = minhash5.calculateLSH(proteins, 3)
 
-minhash3.saveLSH(3)
-minhash4.saveLSH(4)
-minhash5.saveLSH(5)
+minhash3.saveLSH(963)
+minhash4.saveLSH(965)
+minhash5.saveLSH(1285)
 """
-minhash3.loadLSH(3)
-minhash4.loadLSH(4)
-minhash5.loadLSH(5)
+minhash3.loadLSH(963)
+minhash4.loadLSH(1283)
+minhash5.loadLSH(1285)
+"""
 
-
-resultsDB = ResultsDB("Results_DB.sqlite")
+resultsDB = ResultsDB("Results_DB_ec_pa_human.sqlite")
 
 """
 #Create the BLAST table in the results database
@@ -60,7 +61,7 @@ for line in handle:
 	# Filter self-matches, add to the database
 	if line[0] != line[1]:
 		resultsDB.addBLASTresult(line[0], line[1], line[2], line[3])
-
+"""
 # Create the LSH tables in the results database
 resultsDB.createLSHtable("lshresults3")
 resultsDB.deleteTable("lshresults3")
@@ -101,7 +102,7 @@ for query in minhash5.minhashes.keys():
 
 	
 			
-"""
+
 """
 for tablename in ['lshresults3','lshresults4','lshresults5']:
 	intersect = resultsDB.extractIntersectCount(tablename, 0, 30, 0.3)
@@ -117,21 +118,14 @@ for tablename in ['lshresults3','lshresults4','lshresults5']:
 	print("%s \n blastresults: %i\n lshresults: %i \n intersection: %i \nprecision: %0.3f recall: %0.3f accuracy: %0.3f\n" \
 		% (tablename, blastresults, lshresults, intersect, precision, recall, accuracy))
 
-		
-for x in resultsDB.extractBLASTresults(80.0, 100):		
-	print(x)
-	
-print("XXXXXXXXXXXXXXXXXXXXXXX LSH RESULTS XXXXXXXXXXXXX")
-for x in resultsDB.extractLSHresults('lshresults3', 0.5):
-	print(x)
 """
-
+"""
 all_precisions = []
 all_recalls = []
 all_identities = []
 all_alignments = []
-identity_th, alignment_th, jaccard_th = 80.0, 100, 0.6 
-for tablename in ['lshresults3','lshresults4','lshresults5']:
+identity_th, alignment_th, jaccard_th = 80.0, 100, 0.5 
+for tablename in ['lshresults3']:
 	precisions = []
 	recalls = []
 	
@@ -172,6 +166,95 @@ for tablename in ['lshresults3','lshresults4','lshresults5']:
 	print("%s \n blastresults: %i\n lshresults: %i \n intersection: %i \n nr of LSH results matched with a BLAST identity and alignmentlength: %s \n nr of LSH results not matched with BLAST: %s \n" \
 		% (tablename, overall_blastresults, overall_lshresults, overall_intersect, nothreshold_intersect, overall_lshresults - nothreshold_intersect))
 	
+identity_th, alignment_th, jaccard_th = 80.0, 100, 0.4 
+for tablename in ['lshresults4']:
+	precisions = []
+	recalls = []
+	
+	overall_intersect = resultsDB.extractIntersectCount(tablename, identity_th, alignment_th, jaccard_th)
+	nothreshold_intersect = resultsDB.extractIntersectCount(tablename, 0, 0, jaccard_th)
+	overall_lshresults = resultsDB.extractLSHcount(tablename, jaccard_th)
+	overall_blastresults = resultsDB.extractBLASTcount(identity_th, alignment_th)
+	#print("%s \n blastresults: %i\n lshresults: %i \n intersection: %i \n nr of LSH results matched with a BLAST identity and alignmentlength: %s \n nr of LSH results not matched with BLAST: %s \n" \
+	#	% (tablename, overall_blastresults, overall_lshresults, overall_intersect, nothreshold_intersect, overall_lshresults - nothreshold_intersect))
+	
+	all_identities.append(resultsDB.extractIntersectIdentity(tablename, 0, 0, jaccard_th)) 
+	all_alignments.append(resultsDB.extractIntersectAlignmentLength(tablename, 0, 0, jaccard_th))
+
+	
+	for query in proteins:
+		intersect = resultsDB.extractIntersectCountPerProtein(query[0], tablename, identity_th, alignment_th, jaccard_th)
+		lshresults = resultsDB.extractLSHcountPerProtein(query[0],tablename, jaccard_th)
+		blastresults = resultsDB.extractBLASTcountPerProtein(query[0], identity_th, alignment_th)
+		tp = intersect
+		fp = lshresults - intersect
+		fn = blastresults - intersect
+		#tn = (len(proteins)-1) ** 2 - tp - fp - fn
+		precision = tp/(tp+fp) if (tp+fp) != 0 else -1
+		recall = tp/(tp+fn) if (tp+fn) != 0 else -1
+		#accuracy = (tp + tn)/(tp + tn + fp + fn)
+					
+		if lshresults == 0 and blastresults == 0:
+			precision = -1
+			recall = -1
+		if precision != -1:
+			precisions.append(precision)
+		if recall != -1:
+			recalls.append(recall)
+		#print(query[0], intersect, lshresults, blastresults, precision, recall)
+	
+	all_precisions.append(precisions)
+	all_recalls.append(recalls)
+	print("%s \n blastresults: %i\n lshresults: %i \n intersection: %i \n nr of LSH results matched with a BLAST identity and alignmentlength: %s \n nr of LSH results not matched with BLAST: %s \n" \
+		% (tablename, overall_blastresults, overall_lshresults, overall_intersect, nothreshold_intersect, overall_lshresults - nothreshold_intersect))
+	
+
+identity_th, alignment_th, jaccard_th = 80.0, 100, 0.3 
+for tablename in ['lshresults5']:
+	precisions = []
+	recalls = []
+	
+	overall_intersect = resultsDB.extractIntersectCount(tablename, identity_th, alignment_th, jaccard_th)
+	nothreshold_intersect = resultsDB.extractIntersectCount(tablename, 0, 0, jaccard_th)
+	overall_lshresults = resultsDB.extractLSHcount(tablename, jaccard_th)
+	overall_blastresults = resultsDB.extractBLASTcount(identity_th, alignment_th)
+	#print("%s \n blastresults: %i\n lshresults: %i \n intersection: %i \n nr of LSH results matched with a BLAST identity and alignmentlength: %s \n nr of LSH results not matched with BLAST: %s \n" \
+	#	% (tablename, overall_blastresults, overall_lshresults, overall_intersect, nothreshold_intersect, overall_lshresults - nothreshold_intersect))
+	
+	all_identities.append(resultsDB.extractIntersectIdentity(tablename, 0, 0, jaccard_th)) 
+	all_alignments.append(resultsDB.extractIntersectAlignmentLength(tablename, 0, 0, jaccard_th))
+
+	
+	for query in proteins:
+		intersect = resultsDB.extractIntersectCountPerProtein(query[0], tablename, identity_th, alignment_th, jaccard_th)
+		lshresults = resultsDB.extractLSHcountPerProtein(query[0],tablename, jaccard_th)
+		blastresults = resultsDB.extractBLASTcountPerProtein(query[0], identity_th, alignment_th)
+		tp = intersect
+		fp = lshresults - intersect
+		fn = blastresults - intersect
+		#tn = (len(proteins)-1) ** 2 - tp - fp - fn
+		precision = tp/(tp+fp) if (tp+fp) != 0 else -1
+		recall = tp/(tp+fn) if (tp+fn) != 0 else -1
+		#accuracy = (tp + tn)/(tp + tn + fp + fn)
+					
+		if lshresults == 0 and blastresults == 0:
+			precision = -1
+			recall = -1
+		if precision != -1:
+			precisions.append(precision)
+		if recall != -1:
+			recalls.append(recall)
+		#print(query[0], intersect, lshresults, blastresults, precision, recall)
+	
+	all_precisions.append(precisions)
+	all_recalls.append(recalls)
+	print("%s \n blastresults: %i\n lshresults: %i \n intersection: %i \n nr of LSH results matched with a BLAST identity and alignmentlength: %s \n nr of LSH results not matched with BLAST: %s \n" \
+		% (tablename, overall_blastresults, overall_lshresults, overall_intersect, nothreshold_intersect, overall_lshresults - nothreshold_intersect))
+		
+	
+	
+	
+	
 		
 for i in range(len(all_precisions)):
 	plt.hist(all_precisions[i], bins=100)
@@ -205,7 +288,7 @@ plt.savefig('alignmentlength.png')
 plt.close()
 
 """
-
+"""
 #tp = intersect
 #fp = lshResults - intersect
 #fn = blastResults

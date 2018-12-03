@@ -7,10 +7,11 @@ class uniProtein:
         self.fullName=fullName.replace("'","")
         self.seq=seq
     
-    def printUniProtein(self):
-        print("Id %s",self.id)
-        print("Name %s",self.name)
-        print("Description %s",self.description)
-        print("Organism %s",self.organism)
-        print("FullName %s",self.fullName)
-        print("Sequence %s",self.seq)
+    def printUniProtein(self, printSeq=True):
+        print("Id:\t%s"%self.id)
+        print("Name:\t%s"%self.name)
+        print("Full name:\t%s"%self.fullName)
+        print("Organism:\t%s"%self.organism)
+        print("Description:\t%s"%self.description)
+        if printSeq:
+            print("Sequence: %s"%self.seq)

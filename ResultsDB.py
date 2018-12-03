@@ -144,26 +144,13 @@ class ResultsDB(object):
 		results = [l[0] for l in self.c.fetchall()]
 		return results
 
+	def extractIntersectJaccard(self, lshtablename = "lshresults", identity = 0.0, alignmentlength = 0, jaccard = 0):
+		self.c.execute("SELECT lshreslts.jaccard FROM blastresults INNER JOIN "+lshtablename+\
+						" lshreslts ON (lshreslts.queryID = blastresults.queryID AND lshreslts.matchID = blastresults.matchID)" +\
+						" WHERE (blastresults.identity >= "+ str(identity) + \
+						" AND blastresults.alignmentlength >= " + str(alignmentlength)+ \
+						" AND lshreslts.jaccard >= " + str(jaccard) +")")
+					
+		results = [id[0] for id in self.c.fetchall()]
+		return results
 		
-"""	
-	def extractBLASTresultsFromFile(self, organism, filename):
-		output = open('Protein_Specie.csv', 'w+')
-		self.c.execute("SELECT proteinID, sequence FROM proteins WHERE organism ='"+ organism +"'")
-		while True: 
-			row = self.c.fetchone()
-			if row == None: 
-				break
-			print(row[0] + ';' + row[1], file = output)
-   
-	def extractProteinSeqFromSpecie(self, organism):
-		self.c.execute("SELECT proteinID, sequence FROM proteins WHERE organism ='"+ organism +"'")
-		proteins = list(self.c.fetchall())
-		return proteins
-
-	def extractProteinSeqFromSpecie25(self, organism):
-		self.c.execute("SELECT proteinID, sequence FROM proteins WHERE organism ='"+ organism +"'")
-		proteins = list(self.c.fetchall())
-		return proteins
-
-
-"""

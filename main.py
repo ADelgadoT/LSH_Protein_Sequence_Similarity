@@ -7,68 +7,64 @@ from ResultsDB import ResultsDB
 from collections import OrderedDict
 import matplotlib.pyplot as plt
 import pandas as pd
-#from Bio import SeqIO
 import time
 
 class Analyzer(object):
 
 	def run(self):
-
+		print(\
+		"""Local Sensitivity Hashing-based protein similarity search.
+	Options: E[X]it, [L]oad Database, [D]elete Database,
+	[C]alculate LSH, [RC] Recalculate LSH, [LL] Load LSH, [S]ave LSH
+	[Q]uery LSH, Query [A]ll LSH, Read [B]LAST, Compare [R]esults,
+		""")
 		mode=input('Choose option:')
 		
 		uniDB = UniprotDB("Uniprot_DB.sqlite")
 		minhash = LSH(0.5,96)
 		
-		while(mode!='Exit'):
-			#print(mode)
-			if (mode=='Delete Database'):
+		while(mode!='Exit' and mode!='X'):
+
+			if (mode=='Delete Database' or mode=='D'):
 				uniDB.deleteProteins()
 
-			if (mode=='Load Database'):
-				#DB creation:
+			if (mode=='Load Database' or mode=='L'):
 				protManager = ProteinsManager()
-				#uniDB = UniprotDB("Uniprot_DB.sqlite")
 				uniDB.createTables()
-				#loadProteins("uniprot_thaliana.xml",uni_DB)
-				protManager.loadProteins("Ecolx.xml",uniDB)
-				protManager.loadProteins("PseA7.xml",uniDB)
-				protManager.loadProteins("Human.xml",uniDB)
+				filename = input('XML filename (e.g. Ecolx.xml or PseA7.xml or Human.xml): ')
+				protManager.loadProteins(filename,uniDB)
 
-
-			#uniDB = UniprotDB("Uniprot_DB.sqlite")
-			#uni_DB.close()
-			#uniDB.extractProteinSeqFromSpecieCsv("Arabidopsis thaliana (Mouse-ear cress)")
-
-			if (mode=='Calculate LSH'):
+			if (mode=='Calculate LSH' or mode=='C'):
 				uniDB = UniprotDB("Uniprot_DB.sqlite")
-				#uni_DB.close()
 				proteins = uniDB.extractProteins()
-				#minhash.calculateLSH([protein[1] for protein in proteins])
 				minhashes, lsh = minhash.calculateLSH(proteins, 3)
-				print(minhashes.keys())
+				print("Calculated")
 
-			if (mode=='Recalculate LSH'):
-				jaccardThreshold = float(input("Specify a Jaccard similarity threshold: "))
-				minhash = LSH(jaccardThreshold,128)
-				uniDB = UniprotDB("Uniprot_DB.sqlite")
-				#uni_DB.close()
+			if (mode=='Recalculate LSH' or mode=='RC'):
+				jaccardThreshold = float(input("Specify a Jaccard similarity threshold (default: 0.5): "))
+				permutations = int(input("Specify the number of permutations(default: 96) : "))
+				shinglesize = int(input("Specify the shingle size (default: 3): "))
+				minhash = LSH(jaccardThreshold, permutations)
 				proteins = uniDB.extractProteins()
-				#minhash.calculateLSH([protein[1] for protein in proteins])
-				minhashes, lsh = minhash.calculateLSH(proteins, 3)
-				print(minhashes.keys())
+				minhashes, lsh = minhash.calculateLSH(proteins, shinglesize)
+				print("Recalculated")
 
-			if (mode=='Query'):
+			if (mode=='Query LSH' or mode=='Q'):
 				protein = input('Protein accession: ')
 				start_time = time.time()
 				result = minhash.queryProtein(protein)
 				if result is not None:
 					jaccResultsDict = minhash.checkJaccardResultsOfProtein(protein, result)
+					# Return the results in sorted order, big to small Jaccard score
 					sorted_jaccResultsDict = OrderedDict(sorted(jaccResultsDict.items(), key=lambda x: -x[1]))
 					for jaccRes in sorted_jaccResultsDict.items():
-						print(jaccRes[0]," - Jaccard: ",jaccRes[1])
+						print("\nMatch with Jaccard:",jaccRes[1])
+						information = uniDB.extractProteinInformation(jaccRes[0])
+						proteininfo = uniProtein(*information)
+						proteininfo.printUniProtein(printSeq=False)
 				print("Runtime of query search: %s seconds " % (time.time() - start_time))
 
-			if (mode=='Calculate All'):
+			if (mode=='Calculate All' or mode=='CA'):
 				start_time = time.time()
 				uniDB = UniprotDB("Uniprot_DB.sqlite")
 				#uni_DB.close()
@@ -85,7 +81,7 @@ class Analyzer(object):
 							print(jaccRes[0]," - Jaccard: ",jaccRes[1])
 				print("Runtime of query all: %s seconds " % (time.time() - start_time))
 					
-			if (mode=='LSH Query All'):
+			if (mode=='Query All LSH' or mode=='A'):
 				resultsDB = ResultsDB("Results_DB.sqlite")
 				resultsDB.createLSHtable("lshresults")
 				resultsDB.deleteTable("lshresults")
@@ -99,7 +95,7 @@ class Analyzer(object):
 							resultsDB.addLSHresult(query, match, jaccard, "lshresults")
 				print(resultsDB.extractLSHresults("lshresults"))
 					
-			if (mode=='Read BLAST Results'):
+			if (mode=='Read BLAST Results'  or mode=='B'):
 				filename = input('Filename: ')
 				handle = open(filename, 'r')
 				resultsDB = ResultsDB("Results_DB.sqlite")
@@ -117,34 +113,26 @@ class Analyzer(object):
 						resultsDB.addBLASTresult(line[0], line[1], line[2], line[3])
 				print(resultsDB.extractBLASTresults())
 
-			if (mode=='Compare results'):
+			if (mode=='Compare results' or mode=='R'):
 				resultsDB = ResultsDB("Results_DB.sqlite")
-				print("BLAST: ", len(resultsDB.extractBLASTresults()))
-				print("LSH: ", len(resultsDB.extractLSHresults()))
-				print("Intersect: ", len(resultsDB.extractIntersect()))
-				
-				lshResults = pd.DataFrame(resultsDB.extractLSHresults())
-				blastResults = pd.DataFrame(resultsDB.extractBLASTresults())
-				intersect = pd.DataFrame(resultsDB.extractIntersect())
-				
-				tp = intersect.shape[0]
-				fp = lshResults.shape[0] - intersect.shape[0]
-				fn = blastResults.shape[0]
+				intersect = resultsDB.extractIntersectCount('lshresults', 80.0, 100, 0.5)
+				lshresults = resultsDB.extractLSHcount('lshresults', 0.5)
+				blastresults = resultsDB.extractBLASTcount(80.0, 100)
+				tp = intersect
+				fp = lshresults - intersect
+				fn = blastresults
 				precision = tp/(tp+fp)
 				recall = tp/(tp+fn)
-				print("Precision:", precision)
-				print("Recall:", recall)
-				
-				fig1, ax1 = plt.subplots()
-				ax1.set_title('Identity distribution')
-				ax1.boxplot([intersect.iloc[:,2], blastResults.iloc[:,2]], labels=["LSH", "BLAST"])
-				ax1.set_ylabel('Alignment Identity (%)')
-				plt.savefig('test.png')
+				print("Comparison of BLAST and LSH results:\n # BLAST results: %i\n # LSH results: %i \n # True Positive: %i \n Precision: %0.3f Recall: %0.3f\n" \
+					% (blastresults, lshresults, intersect, precision, recall))
 					
-			if (mode=='Save LSH'):
-				minhash.saveLSH()
-			if (mode=='Load LSH'):
-				minhash.loadLSH()
+			if (mode=='Save LSH' or mode=='S'):
+				number = int(input('Suffix number: '))
+				minhash.saveLSH(number)
+
+			if (mode=='Load LSH' or mode=='LL'):
+				number = int(input('Suffix number: '))
+				minhash.loadLSH(number)
 
 			mode = input('Choose option: ')
 	   

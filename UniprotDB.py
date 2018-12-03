@@ -45,3 +45,8 @@ class UniprotDB(object):
         self.c.execute("SELECT proteinID, sequence FROM proteins")
         proteins = list(self.c.fetchall())
         return proteins
+
+    def extractProteinInformation(self, queryID):
+        self.c.execute("SELECT proteinID, name, description, organism, fullName, sequence FROM proteins WHERE proteinID = '" + queryID + "'")
+        information = self.c.fetchone()
+        return information
