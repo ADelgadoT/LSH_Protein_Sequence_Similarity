@@ -4,7 +4,7 @@ import pickle
 
 class LSH:
 
-	def __init__(self, threshold=0.5, num_perm=128):
+	def __init__(self, threshold=0.5, num_perm=96):
 		self.threshold = threshold
 		self.num_perm = num_perm
 		self.lsh = MinHashLSH(threshold=self.threshold, num_perm=self.num_perm)

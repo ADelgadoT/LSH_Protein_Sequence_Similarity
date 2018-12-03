@@ -17,7 +17,7 @@ class Analyzer(object):
 		mode=input('Choose option:')
 		
 		uniDB = UniprotDB("Uniprot_DB.sqlite")
-		minhash = LSH(0.2,128)
+		minhash = LSH(0.5,96)
 		
 		while(mode!='Exit'):
 			#print(mode)
@@ -32,6 +32,8 @@ class Analyzer(object):
 				#loadProteins("uniprot_thaliana.xml",uni_DB)
 				protManager.loadProteins("Ecolx.xml",uniDB)
 				protManager.loadProteins("PseA7.xml",uniDB)
+				protManager.loadProteins("Human.xml",uniDB)
+
 
 			#uniDB = UniprotDB("Uniprot_DB.sqlite")
 			#uni_DB.close()
