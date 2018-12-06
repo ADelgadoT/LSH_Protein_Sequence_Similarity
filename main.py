@@ -113,7 +113,7 @@ class Analyzer(object):
 						resultsDB.addBLASTresult(line[0], line[1], line[2], line[3])
 				print(resultsDB.extractBLASTresults())
 
-			if (mode=='Compare results' or mode=='R'):
+			if (mode=='Compare Results' or mode=='R'):
 				resultsDB = ResultsDB("Results_DB.sqlite")
 				intersect = resultsDB.extractIntersectCount('lshresults', 80.0, 100, 0.5)
 				lshresults = resultsDB.extractLSHcount('lshresults', 0.5)
