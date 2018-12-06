@@ -5,7 +5,7 @@
 
 
 - IMPLEMENTATION
-	All of our code has been developed in Python3 except the obtainment of the BLASTp results to verify the reliability of the implemented method, which have been done with Bash.
+	All of our code has been developed in Python3 except the obtainment of the BLASTp results to verify the reliability of the implemented method, which have been developed with Bash.
 
 - PROJECT STRUCTURE
 	.
@@ -15,6 +15,7 @@
 	│ 
 	└── Code
 	    ├── benckmarking.py
+	    ├── benckmarking_permutations.py
 	    ├── lsh.py
 	    ├── main.py
 	    ├── ProteinsManager.py
@@ -42,17 +43,17 @@ To execute the main functionalities of our developed code, the following command
 
 With it, the developed interactive command line program will be executed. The main functionalities that can be used are the following ones:
 
-	1-. Load Database
-	2-. Delete Database
-	3-. Calculate LSH
-	4-. Recalculate LSH
-	5-. Query
-	6-. LSH Query All
-	7-. Read BLAST Results
-	8-. Compare results
-	9-. Save LSH
-	10-. Load LSH
-	11-. Exit
+	1-. Load Database or L
+	2-. Delete Database or D
+	3-. Calculate LSH or C
+	4-. Recalculate LSH or RC
+	5-. Query LSH or Q
+	6-. Query All LSH or A
+	7-. Read BLAST or B
+	8-. Compare Results or R
+	9-. Save LSH or S
+	10-. Load LSH or LL
+	11-. Exit or E
 
 We consider that most of them are very self-described but if you want to read more details about the functionalities of our program you can read our written report.
 
@@ -77,7 +78,7 @@ B: With precomputed database
 	> Save LSH
 	> Query
    	    > XXXX
-	> Compare results
+	> Compare Results
 	> Exit
 
 C: With precomputed results
@@ -87,6 +88,11 @@ C: With precomputed results
            > XXXX
 	> Compare results
 	> Exit
+
+To be able to execute the benchmarking developed, the following commands must be executed.
+
+	$ python3 benchmarking.py
+	$ python3 benchmarking_permutations.py
 
 
 ** WARNING **
