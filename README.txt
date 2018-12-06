@@ -65,11 +65,14 @@ A: Without precomputed results
 	> Load Database
 	> Calculate LSH
 	> Save LSH
+		> 0
 	> Query
-   	    > XXXX
+   	    > Q9EXN6
+   	> Read BLAST Results
+   		> XXXXX
 	> Compare results
 	> Query
-   	    > XXXX
+   	    > XXXXX
 	> Exit
 
 B: With precomputed database
@@ -77,7 +80,7 @@ B: With precomputed database
 	> Calculate LSH
 	> Save LSH
 	> Query
-   	    > XXXX
+   	    > Q9EXN6
 	> Compare Results
 	> Exit
 
@@ -85,7 +88,7 @@ C: With precomputed results
 
 	> Load LSH
 	> Query
-           > XXXX
+           > Q9EXN6
 	> Compare results
 	> Exit
 
