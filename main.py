@@ -114,18 +114,37 @@ class Analyzer(object):
 				print(resultsDB.extractBLASTresults())
 
 			if (mode=='Compare Results' or mode=='R'):
-				resultsDB = ResultsDB("Results_DB.sqlite")
-				intersect = resultsDB.extractIntersectCount('lshresults', 80.0, 100, 0.5)
-				lshresults = resultsDB.extractLSHcount('lshresults', 0.5)
-				blastresults = resultsDB.extractBLASTcount(80.0, 100)
-				tp = intersect
-				fp = lshresults - intersect
-				fn = blastresults
-				precision = tp/(tp+fp)
-				recall = tp/(tp+fn)
-				print("Comparison of BLAST and LSH results:\n # BLAST results: %i\n # LSH results: %i \n # True Positive: %i \n Precision: %0.3f Recall: %0.3f\n" \
-					% (blastresults, lshresults, intersect, precision, recall))
+
+				# Database with all LSH and BLASTp results
+                resultsDB = ResultsDB("Results_DB.sqlite")
+				identity_th, alignment_th, jaccard_th = 80.0, 100, 0.5 
+				precisions = []
+				recalls = []
+				
+                # Load in all protein ids to loop over
+				uniDB = UniprotDB("Uniprot_DB.sqlite")
+				proteins = uniDB.extractProteins()
+				# Store all precisions and recalls per query, to calculate the average
+				for query in proteins:
+					intersect = resultsDB.extractIntersectCountPerProtein(query[0], 'lshresults', identity_th, alignment_th, jaccard_th)
+					lshresults = resultsDB.extractLSHcountPerProtein(query[0],'lshresults', jaccard_th)
+					blastresults = resultsDB.extractBLASTcountPerProtein(query[0], identity_th, alignment_th)
+					tp = intersect
+					fp = lshresults - intersect
+					fn = blastresults - intersect
+					precision = tp/(tp+fp) if (tp+fp) != 0 else -1
+					recall = tp/(tp+fn) if (tp+fn) != 0 else -1
+					# Exclude results without any similar proteins / division by zero
+					if precision != -1:
+						precisions.append(precision)
+					if recall != -1:
+						recalls.append(recall)
+
+				print("Comparison of BLAST and LSH results:\n Number of proteins queried: %i \n Average precision: %0.3f Average recall: %0.3f\n" \
+					% (len(proteins), sum(precisions)/len(precisions), sum(recalls)/len(recalls)))
+
 					
+				
 			if (mode=='Save LSH' or mode=='S'):
 				number = int(input('Suffix number: '))
 				minhash.saveLSH(number)
