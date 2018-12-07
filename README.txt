@@ -86,13 +86,13 @@ B: With precomputed database
 	> Compare Results
 	> Exit
 
-C: With precomputed results
+C: With precomputed results [RECOMENDED FOR TESTING]
 
 	> Load LSH
 	   > 0
 	> Query LSH
            > Q9EXN6
-	> Compare results
+	> Compare Results
 	> Exit
 
 To be able to execute the benchmarking developed, the following commands must be executed.
