@@ -53,7 +53,7 @@ With it, the developed interactive command line program will be executed. The ma
 	8-. Compare Results or R
 	9-. Save LSH or S
 	10-. Load LSH or LL
-	11-. Exit or E
+	11-. Exit or X
 
 We consider that most of them are very self-described but if you want to read more details about the functionalities of our program you can read our written report.
 
@@ -63,23 +63,25 @@ A: Without precomputed results
 
 	> Delete Database
 	> Load Database
+	   > Ecolx.xml
+	> Load Database
+	   > PseA7.xml
 	> Calculate LSH
 	> Save LSH
-		> 0
-	> Query
+	    > 0
+	> Query LSH
    	    > Q9EXN6
    	> Read BLAST Results
-   		> XXXXX
+   	    > all_results_nofilter.txt
 	> Compare results
-	> Query
-   	    > XXXXX
 	> Exit
 
 B: With precomputed database
 
 	> Calculate LSH
 	> Save LSH
-	> Query
+            > 0
+	> Query LSH
    	    > Q9EXN6
 	> Compare Results
 	> Exit
@@ -87,7 +89,8 @@ B: With precomputed database
 C: With precomputed results
 
 	> Load LSH
-	> Query
+	   > 0
+	> Query LSH
            > Q9EXN6
 	> Compare results
 	> Exit

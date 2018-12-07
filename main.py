@@ -116,7 +116,7 @@ class Analyzer(object):
 			if (mode=='Compare Results' or mode=='R'):
 
 				# Database with all LSH and BLASTp results
-                resultsDB = ResultsDB("Results_DB.sqlite")
+				resultsDB = ResultsDB("Results_DB.sqlite")
 				identity_th, alignment_th, jaccard_th = 80.0, 100, 0.5 
 				precisions = []
 				recalls = []
